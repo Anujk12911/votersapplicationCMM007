@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/votersPortal.css">
+
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="JavaScript/script.js"></script>
+    <title>Voters Management - Voters</title>
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="action-buttons">
+            <button id="adminPanelButton" onclick="openAdminPanel()" style="border-radius: 50%; margin-bottom: 10px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l18-9-9 18-2.89-7.79L3 12z"></path></svg>
+            </button>
+            <button onclick="logout()" style="border-radius: 50%;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            </button>
+        </div>
+
+        <h1 class="dashboard-title">Voters</h1>
+
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Search by voter name" oninput="filterVotersBySearch()">
+        </div>
+
+        <div class="filter-bar">
+            <label for="council">Filter by Council:</label>
+            <select id="council" onchange="filterVoters()">
+            </select>
+
+            <label for="polling_station">Filter by Polling Station:</label>
+            <select id="polling_station" onchange="filterVoters()">
+            </select>
+        </div>
+
+        <div id='votersContainer' class="voters-cards">
+        </div>
+        <!-- Dialog for editing voter details -->
+        <div id="editVoterDialog" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeDialog()">&times;</span>
+                <h1 class="admin-title">Edit Voter</h1>
+                <form id="editVoterForm" class="add-voter-form" enctype="multipart/form-data">
+                    <input type="hidden" id="editVoterId" name="id">
+                    <div class="form-group">
+                        <label for="editVoterName">Voter Full Name:</label>
+                        <input type="text" id="editVoterName" name="name" placeholder="Enter full name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editVoterDob">Date of Birth:</label>
+                        <input type="date" id="editVoterDob" name="date_of_birth" placeholder="YYYY-MM-DD" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editVoterAddress">Permanent Address:</label>
+                        <textarea id="editVoterAddress" name="address" placeholder="Enter permanent address" rows="4"
+                            required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="editVoterCouncil">Council:</label>
+                        <input type="text" id="editVoterCouncil" name="council" placeholder="Enter council" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editVoterPollingStation">Polling Station:</label>
+                        <input type="text" id="editVoterPollingStation" name="polling_station"
+                            placeholder="Enter polling station" required>
+                    </div>
+                    <div id="editErrorContainer" class="error-container"></div>
+                    <button type="button" onclick="updateVoter()">Update Voter</button>
+                </form>
+            </div>
+        </div>
+
+        <script>
+            // Assuming you have a container div in your HTML with id "votersContainer"
+            const votersContainer = document.getElementById('votersContainer');
+
+            if (localStorage.getItem('userRole') !== 'election_officer') {
+                document.getElementById(
+                    'adminPanelButton'
+                ).style.display = 'none';
+            }
+
+            let votersData = [];
+
+            let uniqueCouncils = [];
+            let uniquePollingStations = [];
+
+            // Function to fetch voters from the API
+            function fetchVoters() {
+                $.ajax({
+                    type: 'GET',
+                    url: './../Server/getVoters.php',
+                    dataType: 'json',
+                    success: function (voters) {
+
+                        votersData = voters;
+
+                        // Extract unique councils and polling stations 
+                        uniqueCouncils = [...new Set(voters.map(voter => voter.council))];
+                        uniquePollingStations = [...new Set(voters.map(voter => voter.polling_station))];
+
+                        // Call a function to render voter cards with the received data
+                        renderVoterCards(voters, localStorage.getItem('userRole'));
+
+                        // Populate filter dropdowns with unique councils and polling stations 
+                        populateFilterDropdown('council', uniqueCouncils);
+                        populateFilterDropdown('polling_station', uniquePollingStations);
+                    },
+                    error: function (error) {
+                        console.log(error);
+                    },
+                });
+            }
+
+            // Function to populate filter dropdown with options
+            function populateFilterDropdown(dropdownId, options) {
+                const dropdown = document.getElementById(dropdownId);
+
+                // Clear existing options
+                dropdown.innerHTML = '';
+
+                // Add default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = 'all';
+                defaultOption.textContent = 'All';
+                dropdown.appendChild(defaultOption);
+
+                // Add options based on the array
+                options.forEach(optionValue => {
+                    const option = document.createElement('option');
+                    option.value = optionValue.toLowerCase();
+                    option.textContent = optionValue;
+                    dropdown.appendChild(option);
+                });
+            }
+
+            // Function to render voter cards
+            function renderVoterCards(voters, userRole) {
+                // Clear existing content in the container
+                votersContainer.innerHTML = '';
+
+                if (voters.length === 0) {
+                    const noVotersMessage = document.createElement('p');
+                    noVotersMessage.classList.add('error-container');
+                    noVotersMessage.textContent = 'No voters added yet.';
+                    votersContainer.appendChild(noVotersMessage);
+                    return;
+                }
+
+                // Loop through each voter in the data and create a card for it
+                voters.forEach(voter => {
+                    const card = document.createElement('div');
+                    card.classList.add('voter-card');
+                    card.id = `voter-${voter.id}`;
+
+                    const image = document.createElement('img');
+                    image.src = `data:image/jpeg;base64,${voter.image}`;
+                    image.alt = voter.name;
+
+                    const title = document.createElement('h2');
+                    title.textContent = voter.name;
+
+                    const date_of_birth = document.createElement('p');
+                    date_of_birth.innerHTML = `<strong>Date Of Birth:</strong> ${dateFormatter(voter.date_of_birth)}`;
+
+                    const council = document.createElement('p');
+                    council.innerHTML = `<strong>Council:</strong> ${voter.council}`;
+
+                    const polling_station = document.createElement('p');
+                    polling_station.innerHTML = `<strong>Polling Station:</strong> ${voter.polling_station}`;
+
+                    const address = document.createElement('p');
+                    address.innerHTML = `<strong>Address:</strong> ${voter.address}`;
+
+                    const created_at = document.createElement('p');
+                    created_at.innerHTML = `<strong>Vote Creation Date:</strong> ${dateFormatter(voter.created_at)}`;
+
+                    const updated_at = document.createElement('p');
+                    updated_at.innerHTML = `<strong>Vote Updation Date:</strong> ${dateFormatter(voter.updated_at)}`;
+
+                    // Append image, title, date_of_birth, council, and polling_station to the card
+                    card.appendChild(image);
+                    card.appendChild(title);
+                    card.appendChild(date_of_birth);
+                    card.appendChild(council);
+                    card.appendChild(polling_station);
+                    card.appendChild(address);
+                    card.appendChild(created_at);
+                    card.appendChild(updated_at);
+
+                    // Show delete button only for admins
+                    if (userRole === 'election_officer') {
+                        const buttonWrapper = document.createElement('div');
+                        buttonWrapper.classList.add('button-wrapper');
+                        const deleteButton = document.createElement('button');
+                        deleteButton.classList.add('icon-button');
+                        deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                        deleteButton.onclick = function () {
+                            deleteVoter(voter.id);
+                        };
+
+                        const editButton = document.createElement('button');
+                        editButton.classList.add('icon-button');
+                        editButton.innerHTML = '<i class="fas fa-edit"></i>';
+                        editButton.onclick = function () { openEditDialog(voter); };
+
+                        buttonWrapper.appendChild(editButton);
+                        buttonWrapper.appendChild(deleteButton);
+
+                        card.appendChild(buttonWrapper);
+                    }
+
+                    // Append the card to the voter container
+                    votersContainer.appendChild(card);
+                });
+            }
+
+            function dateFormatter(dateStr) {
+                const date = new Date(dateStr);
+
+                const options = { day: '2-digit', month: 'long', year: 'numeric' };
+                return date.toLocaleDateString('en-GB', options);
+            }
+            function filterVotersBySearch() {
+                const searchInput = document.getElementById('searchInput').value.toLowerCase();
+                // Filter voters based on selected council and polling_station
+                const filteredVoters = votersData.filter(voter =>
+                    voter.name.toLowerCase().includes(searchInput)
+                );
+
+                // Call the renderVoterCards function with the filtered voters
+                renderVoterCards(filteredVoters, localStorage.getItem('userRole'));
+            }
+
+            function filterVoters() {
+                const selectedCounsil = document.getElementById('council').value;
+                const selectedPollingStation = document.getElementById('polling_station').value;
+
+                // Filter voters based on selected council and polling_station
+                const filteredVoters = votersData.filter(voter => {
+                    const councilMatch = selectedCounsil === 'all' || voter.council.toLowerCase() === selectedCounsil;
+                    const pollingStationMatch = selectedPollingStation === 'all' || voter.polling_station.toLowerCase() === selectedPollingStation;
+
+                    return councilMatch && pollingStationMatch;
+                });
+
+                // Call the renderVoterCards function with the filtered voters
+                renderVoterCards(filteredVoters, localStorage.getItem('userRole'));
+            }
+
+            function openEditDialog(voter) {
+                document.getElementById('editVoterId').value = voter.id;
+                document.getElementById('editVoterName').value = voter.name;
+                document.getElementById('editVoterDob').value = voter.date_of_birth;
+                document.getElementById('editVoterAddress').value = voter.address;
+                document.getElementById('editVoterCouncil').value = voter.council;
+                document.getElementById('editVoterPollingStation').value = voter.polling_station;
+                document.getElementById('editVoterDialog').style.display = 'block';
+            }
+
+            function closeDialog() {
+                document.getElementById('editVoterDialog').style.display = 'none';
+            }
+
+            function updateVoter() {
+                const formData = new FormData(document.getElementById('editVoterForm'));
+                $.ajax({
+                    type: 'POST',
+                    url: './../Server/updateVoter.php',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        alert('Voter updated successfully');
+                        closeDialog();
+                        fetchVoters(); // Refresh the list of voters
+                    },
+                    error: function (error) {
+                        const responseObj = JSON.parse(error.responseText);
+                        const errorContainer = document.getElementById('editErrorContainer');
+                        if (responseObj && responseObj.message) {
+                            errorContainer.innerHTML = responseObj.message;
+                        } else {
+                            console.log(error);
+                            errorContainer.innerHTML = 'An error occurred. Please try again.';
+                        }
+                    },
+                });
+            }
+
+            // Call the fetchVoters function when the page loads
+            window.onload = fetchVoters;
+        </script>
+</body>
+
+</html>

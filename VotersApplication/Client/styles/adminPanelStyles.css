@@ -1,0 +1,106 @@
+body {
+    font-family: 'Poppins', sans-serif;
+    /* background-color: #f5f5f5; */
+    background: url('../assets/registerVote.jpg') center/cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+}
+
+/* Add your styles for the Admin Panel here */
+
+.admin-container {
+    width: 40%;
+    padding: 30px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    opacity: 0.95;
+    margin: auto;
+    margin-top: 50px; /* Adjust as needed */
+}
+
+.admin-title {
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.add-voter-form label {
+    color: #333;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.add-voter-form input,
+.add-voter-form textarea {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 25px;
+}
+
+.add-voter-form textarea {
+    border-radius: 8px;
+    resize: vertical;
+}
+
+.add-voter-form button {
+    background-color: #f324c6;
+    color: #fff;
+    padding: 12px;
+    border: none;
+    cursor: pointer;
+    border-radius: 25px;
+    font-size: medium;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.add-voter-form button:hover {
+    background-color: #e918aa;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: #777;
+    font-family: 'Poppins', sans-serif;
+}
+
+button {
+    font-family: 'Poppins', sans-serif;
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 150;
+}
+
+button {
+    background-color: #f324c6;
+    color: white;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #e918aa;
+}
+
+.error-container {
+    color: #ff0000;
+    font-size: 14px;
+    text-align: center;
+}

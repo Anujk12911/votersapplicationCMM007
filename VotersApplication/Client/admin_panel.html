@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/adminPanelStyles.css">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <title>Election Officer Panel</title>
+</head>
+
+<body>
+    <div class="admin-container">
+        <div class="action-buttons">
+            <button onclick="logout()">Logout</button>
+        </div>
+        <h1 class="admin-title">Add a Voter</h1>
+        <form class="add-voter-form" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="voterName">Voter Full Name:</label>
+                <input type="text" id="voterName" name="name" placeholder="Enter full name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="date_of_birth">Date of Birth:</label>
+                <input type="date" id="date_of_birth" name="date_of_birth" placeholder="YYYY-MM-DD" required>
+            </div>
+
+            <div class="form-group">
+                <label for="address">Permanent Address:</label>
+                <textarea id="address" placeholder="Enter permanent address" rows="4" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="voterImage">User Image:</label>
+                <input type="file" id="voterImage" name="voterImage" accept="image/*" required>
+            </div>
+
+            <div class="form-group">
+                <label for="voterCouncil">Council:</label>
+                <input type="text" id="voterCouncil" placeholder="Enter voter council" required>
+            </div>
+
+            <div class="form-group">
+                <label for="voterPollingStation">Polling Station:</label>
+                <input type="text" id="voterPollingStation" placeholder="Enter voter polling station" required>
+            </div>
+            <div id="errorContainer" class="error-container"></div>
+            <button type="button" onclick="addVoter()">Add Voter</button>
+        </form>
+    </div>
+
+    <script src="JavaScript/script.js">
+
+    </script>
+</body>
+
+</html>

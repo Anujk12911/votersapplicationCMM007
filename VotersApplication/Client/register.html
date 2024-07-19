@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/registerStyles.css">
+    
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <title>Voters Management - Sign Up</title>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Register here</h1>
+        <form id="signupForm" action="./../Server/register.php" method="POST">
+            <label for="username">User ID</label>
+            <input type="text" id="username" name="username" placeholder="Enter your User ID" required>
+
+            <label for="password">Pass Key</label>
+            <input type="password" id="password" name="password" placeholder="Enter your Pass Key" required>
+
+            <label for="confirmPassword">Confirm Pass Key</label>
+            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm your Pass Key"
+                required>
+
+            <div class="role-container">
+                <label>Role</label>
+
+                <input type="radio" id="roleVoter" name="role" value="voter" checked>
+                <label for="roleVoter">Voter</label>
+
+                <input type="radio" id="roleElectionOfficer" name="role" value="election_officer">
+                <label for="roleElectionOfficer">Election Officer</label>
+
+            </div>
+
+            <div id="errorContainer" class="error-container"></div>
+
+            <button type="button" onclick="signup()">Create account</button>
+        </form>
+        <p>Already have an account? <a href="login.html">Authenticate!</a></p>
+    </div>
+
+    <script src="JavaScript/script.js"></script>
+</body>
+
+</html>
